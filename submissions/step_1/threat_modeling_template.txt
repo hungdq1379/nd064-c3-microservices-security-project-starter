@@ -1,0 +1,57 @@
+Docker Threat Modeling
+Given Docker's system components and the STRIDE framework, identify five potential threats that may arise.
+
+
+Docker Client:
+
+Client Compromise: This pertains to the compromise of the Docker desktop operating on the administrator's machine.
+Client Authorization Abuse: Refers to the misuse of the client's authorization to execute privileged changes.
+Dockerfile Misconfiguration: Involves concerns related to how the Dockerfile is constructed.
+Spoofing: There's a potential risk of malicious parties intercepting and replaying client traffic from the Docker client to the Docker daemon or registry. The implementation of Transport Layer Security (TLS) is crucial to secure communications affecting the client.
+
+Docker Host:
+
+Isolation Tampering: Signifies a heightened focus on namespace isolation to thwart container escape attacks.
+Use of --privilege Flag: The utilization of this flag poses risks as it can elevate permissions and compromise security.
+Insecure Defaults: Points to vulnerabilities arising from default settings that may not be sufficiently secure.
+Misconfiguration: Concerns arise when the configuration of the Docker daemon is tampered with, potentially leading to misconfiguration.
+Tampering: A compromised client can tamper with the daemon configuration, resulting in misconfiguration.
+
+Docker Registry - The Largest Attack Surface:
+
+Image Security: Focuses on the security of container images within the Docker registry.
+Open Source Software (OSS) Security: Encompasses the security of open-source components utilized in the Docker registry.
+Docker Registry Security: Addresses the overall security of the Docker registry.
+Elevation of Privilege: Refers to the potential escalation of container image permissions through the use of the --privilege flag. Security flaws within image libraries can significantly impact image security.
+
+
+Kubernetes Threat Modeling
+Given Kubernetes' system components and the STRIDE framework, identify five potential threats that may arise.
+
+Control Plane:
+    Lifeline of Kubernetes API: The control plane is vital for running numerous services within the Kubernetes API. For enhanced security, both control planes and nodes should not have internet access, ensuring the privacy of your clusters.
+
+Node Runtime:
+    Node Runtime Components: This encompasses essential components like kube-proxy and kubelet on the worker node.
+
+Cloud Provider:
+    Integration with Cloud Provider: Enables the linkage of your cluster with your cloud provider's API. It distinguishes components interacting with the cloud platform from those interacting solely with the cluster.
+
+Evaluating Kubernetes Control Plane Using STRIDE:
+    Denial of Service: The API server can be overwhelmed by excessive traffic, potentially impacting the endpoint. Additionally, kube-scheduler might incorrectly schedule pods.
+
+Evaluating Kubernetes Node Runtime Using STRIDE:
+    Information Disclosure: Kube-proxy may expose sensitive information. To mitigate this, ensure that --kubeconfig is set with permissions no more permissive than 644 to prevent unauthorized access.
+
+Example Aspects of STRIDE:
+* Spoofing: Kubernetes comes with insecure defaults, such as all pods having CAP_NET_RAW permissions. This allows any pod to open raw sockets and inject malicious packets into the Kubernetes container network, potentially leading to spoofing.
+* Repudiation: Kubernetes lacks native support for certificate revocation, potentially leading to repudiation if certificates cannot be revoked when necessary.
+* Denial of Service: Kubernetes lacks an upper limit for setting the memory footprint, which may result in a denial of service by exhausting resources needed to run a pod.
+
+
+Docker-bench Run Results and Analysis
+From the failed findings, select and document 3 findings from the Docker-bench results that you want to harden based on the 5 attack surface areas you identified in Step 1. At least 1 of the 3 hardened findings should be different from the ones mentioned in the exercise (i.e. 5.10, 5.14, and 5.22).
+
+[FAIL] 2.2.b Ensure the logging level is set to 'info' (Scored)
+[FAIL] 4.5 Ensure Content trust for Docker is Enabled (Scored)
+[FAIL] 2.14.a Ensure Userland Proxy is Disabled (Scored)
