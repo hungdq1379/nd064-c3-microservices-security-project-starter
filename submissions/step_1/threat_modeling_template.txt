@@ -4,49 +4,71 @@ Given Docker's system components and the STRIDE framework, identify five potenti
 
 Docker Client:
 
-Client Compromise: This pertains to the compromise of the Docker desktop operating on the administrator's machine.
-Client Authorization Abuse: Refers to the misuse of the client's authorization to execute privileged changes.
-Dockerfile Misconfiguration: Involves concerns related to how the Dockerfile is constructed.
-Spoofing: There's a potential risk of malicious parties intercepting and replaying client traffic from the Docker client to the Docker daemon or registry. The implementation of Transport Layer Security (TLS) is crucial to secure communications affecting the client.
+Client authorization abuse: unauthorized access or misuse of client credentials or tokens
+Misconfigurations in a Dockerfile can lead to various issues, such as incorrect image builds, missing dependencies, or security vulnerabilities.
+Tampering - An attacker gets control of the Docker client. This could lead to tampering of the Dockerfile that’s used to build the image affecting Dockerfile.
+Repudiation - Once the client is compromised, the attacker may use it to make changes that are not legitimate, which could impact the Dockerfile.
+Information Disclosure - The client may expose sensitive information such as secrets that are hardcoded in configuration files that could impact the security of the Dockerfile.
+Denial of Service - Excessive traffic from the client could overwhelm the daemon (often on the same machine) and could cause it to crash, leading to a client compromise.
+Elevation of Privilege - when a Dockerfile does not specify a user, it defaults to executing the container using the root user, affecting client authorization and the Dockerfile.
 
 Docker Host:
 
-Isolation Tampering: Signifies a heightened focus on namespace isolation to thwart container escape attacks.
-Use of --privilege Flag: The utilization of this flag poses risks as it can elevate permissions and compromise security.
-Insecure Defaults: Points to vulnerabilities arising from default settings that may not be sufficiently secure.
-Misconfiguration: Concerns arise when the configuration of the Docker daemon is tampered with, potentially leading to misconfiguration.
-Tampering: A compromised client can tamper with the daemon configuration, resulting in misconfiguration.
+Spoofing - This can occur when a sidecar container has intentional access to the primary container's namespace and may spoof the namespace used by the primary container, resulting in isolation tampering. You should be careful with using sidecar containers.
+Tampering - Daemon configuration may be tampered with by a compromised client, leading to misconfiguration.
+Repudiation - A user may make changes to the daemon that are not legitimate, leading to misconfiguration.
+Information Disclosure - The Docker host file system may be misconfigured, exposing sensitive information and leading to insecure defaults.
+Denial of Service - Daemon memory for the running container may be over-allocated, leading to a misconfiguration.
+Elevation of Privilege - Daemon privilege may be escalated if a user name is not defined and the container runs as root, which gives access to any other container on the same host, leading to isolation tampering.
 
-Docker Registry - The Largest Attack Surface:
+Docker Registry:
 
-Image Security: Focuses on the security of container images within the Docker registry.
-Open Source Software (OSS) Security: Encompasses the security of open-source components utilized in the Docker registry.
-Docker Registry Security: Addresses the overall security of the Docker registry.
-Elevation of Privilege: Refers to the potential escalation of container image permissions through the use of the --privilege flag. Security flaws within image libraries can significantly impact image security.
+Spoofing - Authenticity of images is a big concern as we put a lot of trust in them. An image may be spoofed with malicious images or libraries as part of the container layers, which affects image security.
+Tampering - Container image may be tampered with, leading to supply chain injections. This is the biggest risk regarding the supply chain. An attacker may implant a malicious image into the image registry and entice organizations to use it. Alternatively, an attacker may introduce open source libraries in popular hosted repositories and encourage organizations to use them. This can affect both image security and Open Source Software security.
+Repudiation - Malicious images may be committed without authorization by an attacker. This affects image security.
+Information Disclosure - Sensitive data such as secrets may be left in the container image and exposed at runtime affecting image security and potentially much more, depending on the scope of the credentials. This would affect image security.
+Denial of Service - Docker distribution may not properly restrict the amount of content accepted by a user. This allows remote attackers to cause a denial of service. This could affect registry security.
+Elevation of Privilege - Container image permissions may be elevated using the --privilege flag. Image libraries may contain security flaws. This can affect image security.
 
 
 Kubernetes Threat Modeling
 Given Kubernetes' system components and the STRIDE framework, identify five potential threats that may arise.
 
 Control Plane:
-    Lifeline of Kubernetes API: The control plane is vital for running numerous services within the Kubernetes API. For enhanced security, both control planes and nodes should not have internet access, ensuring the privacy of your clusters.
+This is the lifeline of the Kubernetes API running many services. Internet access to both control planes and nodes should be disallowed to ensure your clusters are private.
+
 
 Node Runtime:
-    Node Runtime Components: This encompasses essential components like kube-proxy and kubelet on the worker node.
+This is the node runtime components including kube-proxy and kubelet on the worker node.
+
 
 Cloud Provider:
-    Integration with Cloud Provider: Enables the linkage of your cluster with your cloud provider's API. It distinguishes components interacting with the cloud platform from those interacting solely with the cluster.
+
+This allows you to link your cluster into your cloud provider's API, and separates out the components that interact with that cloud platform from components that just interact with your cluster.
+Security with Cloud Provider: Integrating with a cloud provider also involves considering security aspects to ensure that your containers and the underlying infrastructure are properly secured. Security aspects includes setting up access controls, encrypting sensitive data, and regularly patching and updating your container images.
 
 Evaluating Kubernetes Control Plane Using STRIDE:
-    Denial of Service: The API server can be overwhelmed by excessive traffic, potentially impacting the endpoint. Additionally, kube-scheduler might incorrectly schedule pods.
+
+Spoofing - Calls to the API server could be spoofed by a malicious caller. This can be mitigated by ensuring all calls to the API server are over TLS, ensuring that anonymous and basic authentication is not used.
+Tampering - The configuration of etcd may be tampered with by an attacker, modifying vital system-level configurations such as pod specs. This can be mitigated by restricting permissions on etcd files to 644 or more restrictive and that the pod spec file is set to root ownership.
+Repudiation - Unauthorized changes may be made to the API server. This can be mitigated by making sure only trusted callers can authenticate to the API server by enforcing TLS.
+Information Disclosure - Sensitive information may be exposed via the etcd key-value store. This can be mitigated by encrypting etcd content at rest and using TLS to access etcd only from the kube-apiserver. All other traffic should be rejected.
+Denial of Service - excessive traffic to the API server can overwhelm the endpoint. kube-scheduler can incorrectly schedule the pod.
+Elevation of Privilege - privilege can be abused by using the privileged flag. This should be avoided in all cases. This affects kube-apiserver.
 
 Evaluating Kubernetes Node Runtime Using STRIDE:
-    Information Disclosure: Kube-proxy may expose sensitive information. To mitigate this, ensure that --kubeconfig is set with permissions no more permissive than 644 to prevent unauthorized access.
+
+Spoofing - The connection between the API server and kubelet can be spoofed. This can be mitigated by using kubelet uses strong encryption that does not have cryptographic flaws, strong TLS ciphers should be used.
+Tampering - The kubelet configuration can be tampered with. Specifically, the kubelet.conf worker configuration file can be tampered with. Make sure to set the permission to 644 or more restrictive.
+Repudiation - Unauthorized changes can be made to kubelet. To avoid this, kubelet authentication should be TLS and weak/ basic auth should not be allowed.
+Information Disclosure - Kube-proxy can expose sensitive information. To ensure the kube-proxy does not expose information, the --kubeconfig should be set to permissions 644 or less permissive.
+Denial of Service - Kubelet can be subject to denial of service. To protect the kernel from runtime overruns, set the --protect kernel defaults to true.
+Elevation of Privilege - Kubelet can be subject to an elevation of privilege. To ensure privileges cannot be escalated, make sure the authorization mode argument is not set to always allow.
 
 Example Aspects of STRIDE:
-* Spoofing: Kubernetes comes with insecure defaults, such as all pods having CAP_NET_RAW permissions. This allows any pod to open raw sockets and inject malicious packets into the Kubernetes container network, potentially leading to spoofing.
-* Repudiation: Kubernetes lacks native support for certificate revocation, potentially leading to repudiation if certificates cannot be revoked when necessary.
-* Denial of Service: Kubernetes lacks an upper limit for setting the memory footprint, which may result in a denial of service by exhausting resources needed to run a pod.
+Spoofing: Kubernetes ships with insecure defaults, for example, all pods have CAP_NET_RAW permissions. This allows all pods to open raw sockets and inject malicious packets into the Kubernetes container network, which may lead to spoofing.
+Repudiation: Kubernetes natively doesn't allow certificate revocation, which may lead to repudiation if a certificate cannot be revoked when necessary.
+Denial of Service: Kubernetes ships without an upper limit for setting the memory footprint. This may lead to a denial of service which could result in exhausting resources needed to run the pod.
 
 
 Docker-bench Run Results and Analysis
