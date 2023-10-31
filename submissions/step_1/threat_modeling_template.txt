@@ -74,6 +74,7 @@ Denial of Service: Kubernetes ships without an upper limit for setting the memor
 Docker-bench Run Results and Analysis
 From the failed findings, select and document 3 findings from the Docker-bench results that you want to harden based on the 5 attack surface areas you identified in Step 1. At least 1 of the 3 hardened findings should be different from the ones mentioned in the exercise (i.e. 5.10, 5.14, and 5.22).
 
-[FAIL] 2.2.b Ensure the logging level is set to 'info' (Scored)
-[FAIL] 4.5 Ensure Content trust for Docker is Enabled (Scored)
-[FAIL] 2.14.a Ensure Userland Proxy is Disabled (Scored)
+[FAIL] 5.10 Ensure that the memory usage for container is limited (Scored)
+[FAIL] 5.14 Ensure that the 'on-failure' container restart policy is set to '5' (Scored)
+[FAIL] 5.22 Ensure that docker exec commands are not used with the privileged option (Scored)
+
