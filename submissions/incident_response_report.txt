@@ -1,0 +1,12 @@
+1. Incident commander name: HungDQ
+2. Executive Summary of what happened:
+    Three distinct crypto mining pods are deploying
+3. Summary of what was affected:
+    The invader obtained control of the cluster and ran these containers within it. The attackers intend to use CPU resources for crypto-mining, notably Monero mining containers like moneropool, minergate, and cryptotonight.
+4. Summmry of the impact:
+    It would be a concern if the attacker was successful in launching crypto miners on our system, as crypto mining places a significant demand on the CPU. To examine, use the magnifying glass icon on the left-side panel and search for "Kubernetes/Compute Resources." In the recent minutes, there has been a considerable increase in CPU use for both Kubernetes and the default, indicating the start of crypto miners.
+5. Summary of the remediation steps:
+    run command: kubectl --kubeconfig kube_config_cluster.yml delete pod <pod_name>
+    After removing the pods, it is a good idea to check the Grafana dashboard for CPU consumption. As the crypto mining pods are removed, the CPU utilization is projected to gradually decrease. Similarly, the charts exhibiting crypto-mining-related alerts on the Falco Dashboard Udacity should begin to exhibit a flat line, representing the removal of the crypto mining pods.
+6. Summary of lessons learned:
+    We can use admission controllers to restrict the import and initiation of specified photos within the pods. Monitoring, such as the dashboards available in the falco-exporter metrics pane, demonstrates that these events are given a notably high priority. The priority levels can be adjusted to improve prioritizing by modifying the rules. This change guarantees that Falco alerts relating to occurrences like these are prominently presented in Grafana.

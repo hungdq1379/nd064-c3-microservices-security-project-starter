@@ -19,3 +19,20 @@ No stress, you have tools, security engineering and security incident response k
 ### Project Instructions
 
 Follow the steps/instructions in the Udacity classroom to complete and submit the project.
+
+
+
+kubectl apply   --validate=false -f https://github.com/cert-manager/cert-manager/releases/download/v1.3.1/cert-manager.yaml  
+helm install  cert-manager jetstack/cert-manager  --namespace cert-manager --create-namespace --version v1.3.1
+helm install  falco-exporter --namespace falco --set serviceMonitor.enabled=true falcosecurity/falco-exporter
+
+helm list  --all --all-namespaces
+
+
+prometheus
+helm list --all --all-namespaces
+
+
+kubectl  edit prometheus kube-prometheus-stack-1670-prometheus -n monitoring
+
+kubectl  apply -f falco_service_monitor.yaml
